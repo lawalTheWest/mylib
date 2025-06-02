@@ -1,0 +1,49 @@
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.venv/
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django specific
+*.log
+*.pot
+*.mo
+*.bak
+local_settings.py
+db.sqlite3
+media/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Operating System files
+.directory
+.project
+.settings
+
+# Node.js (for future upgradeusing npm/yarn for frontend assets)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Frontend build artifacts
+dist/
+build/
+
+# Docker (using Docker for development/deployment)
+.dockerignore
+docker-compose.override.yml # Often contains local development specific overrides
+*.env

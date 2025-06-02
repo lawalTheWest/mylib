@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ book.title }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        #pdf-container {
+            position: relative;
+            width: 100%;
+            max-width: 100vw;
+            margin: 0 auto;
+            min-height: 300px;
+        }
+        #pdf-viewer, #text-layer {
+            width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+        #text-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: auto;
+            color: transparent;
+            user-select: text;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+        }
+        @media (max-width: 600px) {
+            #pdf-controls {
+                font-size: 14px;
+            }
+            #pdf-container {
+                min-height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ book.title }}</h1>
+    <p><strong>Author:</strong> {{ book.author }}</p>
+    <p><strong>Category:</strong> {{ book.category }}</p>
+    <p>{{ book.description }}</p>
+
+    <h3>Read Online</h3>
+    <div id="pdf-controls" style="margin-bottom: 10px;">
+        <button id="prev-page">Previous</button>
+        <span>Page: <span id="page-num"></span> / <span id="page-count"></span></span>
+        <button id="next-page">Next</button>
+        <input type="number" id="jump-page" min="1" style="width: 60px;" placeholder="Page">
+        <button id="go-page">Go</button>
+    </div>
+    <div id="pdf-container">
+        <canvas id="pdf-viewer"></canvas>
+        <div id="text-layer"></div>
+    </div>
+
+    <p><a href="{% url 'book_list' %}">Back to list</a></p>
+
+    <script>
+        const url = "{{ book.file.url }}";
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.getElementById('pdf-viewer'),
+            ctx = canvas.getContext('2d'),
+            textLayerDiv = document.getElementById('text-layer'),
+            container = document.getElementById('pdf-container');
+
+        function getResponsiveScale(viewport) {
+            // Fit PDF to container width
+            const containerWidth = container.clientWidth;
+            return containerWidth / viewport.width;
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                let viewport = page.getViewport({scale: scale});
+                // Responsive scaling
+                const responsiveScale = getResponsiveScale(viewport);
+                viewport = page.getViewport({scale: scale * responsiveScale});
+
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // Position text layer
+                textLayerDiv.style.height = canvas.height + "px";
+                textLayerDiv.style.width = canvas.width + "px";
+                textLayerDiv.style.top = canvas.offsetTop + "px";
+                textLayerDiv.style.left = canvas.offsetLeft + "px";
+
+                // Render PDF page into canvas context
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                const renderTask = page.render(renderContext);
+
+                // Render text layer
+                page.getTextContent().then(function(textContent) {
+                    textLayerDiv.innerHTML = '';
+                    pdfjsLib.renderTextLayer({
+                        textContent: textContent,
+                        container: textLayerDiv,
+                        viewport: viewport,
+                        textDivs: []
+                    });
+                });
+
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    document.getElementById('page-num').textContent = pageNum;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        function onPrevPage() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        function onGoPage() {
+            const input = document.getElementById('jump-page');
+            let target = parseInt(input.value, 10);
+            if (!isNaN(target) && target >= 1 && target <= pdfDoc.numPages) {
+                pageNum = target;
+                queueRenderPage(pageNum);
+            }
+        }
+
+        pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+            pdfDoc = pdfDoc_;
+            document.getElementById('page-count').textContent = pdfDoc.numPages;
+            renderPage(pageNum);
+        }).catch(err => {
+            console.error(err);
+            document.body.innerHTML += `<p style="color:red;">Failed to load PDF: ${err.message}</p>`;
+        });
+
+        document.getElementById('prev-page').addEventListener('click', onPrevPage);
+        document.getElementById('next-page').addEventListener('click', onNextPage);
+        document.getElementById('go-page').addEventListener('click', onGoPage);
+
+        // Re-render on window resize for responsiveness
+        window.addEventListener('resize', () => {
+            if (pdfDoc) queueRenderPage(pageNum);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CFX Library</title>
+</head>
+<body>
+    <h1>Cybersforth X</h1>
+    <h2>Library Book List</h2>
+    <form method="get">
+        <label>Sort by:</label>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="category">Category</option>
+        </select>
+    </form>
+
+    <ul>
+        {% for book in books %}
+            <li>
+                <strong>{{ book.title }}</strong> by {{ book.author }}
+                [ <a href="{% url 'book_detail' book.pk %}">Read</a> ]
+            </li>
+        {% empty %}
+            <li>No Books Available</li>
+        
+        {% endfor %}
+    </ul>
+</body>
+</html>
