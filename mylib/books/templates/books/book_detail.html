@@ -142,6 +142,22 @@
             background: #225ea8;
             box-shadow: 0 4px 16px rgba(44, 62, 80, 0.12);
         }
+        .download-link {
+            display: inline-block;
+            margin-top: 1rem;
+            background: #38a169;
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(56, 161, 105, 0.08);
+        }
+        .download-link:hover {
+            background: #276749;
+            box-shadow: 0 4px 16px rgba(56, 161, 105, 0.12);
+        }
         @media (max-width: 700px) {
             .book-meta, #pdf-container, #pdf-controls, #pdf-controls-bottom {
                 max-width: 98vw;
@@ -171,6 +187,9 @@
         <p><strong>Author:</strong> {{ book.author }}</p>
         <p><strong>Category:</strong> {{ book.category }}</p>
         <p>{{ book.description }}</p>
+        <a class="download-link" href="{% url 'download_book' book.pk %}">
+            &#128190; Download PDF
+        </a>
     </div>
 
     <h3>Read Online</h3>

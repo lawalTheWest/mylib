@@ -91,6 +91,19 @@
         a:hover {
             background: #225ea8;
         }
+        .download-link {
+            background: #38a169;
+            color: #fff;
+            text-decoration: none;
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            font-size: 0.98rem;
+            margin-left: 0.5rem;
+            transition: background 0.2s;
+        }
+        .download-link:hover {
+            background: #276749;
+        }
         @media (max-width: 700px) {
             ul {
                 max-width: 98vw;
@@ -126,7 +139,10 @@
                     <span class="book-title">{{ book.title }}</span>
                     <span class="book-author">by {{ book.author }}</span>
                 </div>
-                <a href="{% url 'book_detail' book.pk %}">Read</a>
+                <div>
+                    <a href="{% url 'book_detail' book.pk %}">Read</a>
+                    <a href="{% url 'download_book' book.pk %}" class="download-link">&#128190; Download</a>
+                </div>
             </li>
         {% empty %}
             <li>No Books Available</li>
