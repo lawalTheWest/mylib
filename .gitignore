@@ -38,12 +38,3 @@ Thumbs.db
 node_modules/
 npm-debug.log
 yarn-error.log
-
-# Frontend build artifacts
-dist/
-build/
-
-# Docker (using Docker for development/deployment)
-.dockerignore
-docker-compose.override.yml # Often contains local development specific overrides
-*.env
